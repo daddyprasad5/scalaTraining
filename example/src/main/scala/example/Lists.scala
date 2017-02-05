@@ -1,10 +1,7 @@
 package example
 
-import scala.annotation.tailrec
-import scala.annotation.switch
 
-
-object  Lists {
+object Lists {
 
   /**
    * This method computes the sum of all elements in the list xs. There are
@@ -27,26 +24,12 @@ object  Lists {
    * @return The sum of all elements in `xs`
    */
     def sum(xs: List[Int]): Int = {
-    @tailrec
-    def sumAccumulator(xs: List[Int], accum: Int): Int = {
-      (xs: @switch) match {
-        case Nil => accum
-        case x :: tail => sumAccumulator(tail, accum + x)
+      def iter(xs: List[Int], acc: Int): Int = {
+        if (xs.isEmpty) acc
+        else iter(xs.tail, acc + xs.head)
       }
+      iter(xs, 0)
     }
-    sumAccumulator(xs, 0)
-  }
-
-  def sumRaj(xs: List[Int]): Int = {
-    @tailrec
-    def sumAccumulator(xs: List[Int], accum: Int): Int = {
-      if (xs.isEmpty) accum
-      else {
-        sumAccumulator(xs.tail, accum + xs.head)
-      }
-    }
-    sumAccumulator(xs, 0)
-  }
   
   /**
    * This method returns the largest element in a list of integers. If the
@@ -62,17 +45,10 @@ object  Lists {
    * @throws java.util.NoSuchElementException if `xs` is an empty list
    */
     def max(xs: List[Int]): Int = {
-    @tailrec
-      def maxInt(xs: List[Int], max: Int): Int = {
-        (xs: @switch) match {
-          case Nil => max
-          case x :: tail => {
-            if (x > max) maxInt(tail, x)
-            else maxInt(tail, max)
-          }
-        }
+      def iter(xs: List[Int], acc: Int): Int = {
+        if (xs.isEmpty) acc
+        else iter(xs.tail, if(xs.head > acc) xs.head else acc)
       }
-    if (xs.isEmpty)  throw new java.util.NoSuchElementException("empty list is not allowed")
-    maxInt(xs, 0)
-  }
+      iter(xs, 0)
+    }
   }

@@ -1,7 +1,6 @@
 package example
 
 import org.scalatest.FunSuite
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -47,7 +46,7 @@ import org.scalatest.junit.JUnitRunner
    * This allows tests to be written in a more readable manner:
    */
   test("one plus one is three?") {
-    assert(1 + 1 == 3) // This assertion fails! Go ahead and fix it.
+    assert(1 + 1 != 3) // This assertion fails! Go ahead and fix it.
   }
 
 
@@ -72,7 +71,7 @@ import org.scalatest.junit.JUnitRunner
    * We recommend to always use the `===` equality operator when writing tests.
    */
   test("details why one plus one is not three") {
-    assert(1 + 1 === 3) // Fix me, please!
+    assert(1 + 1 !== 3) // Fix me, please!
   }
 
   /**
@@ -117,8 +116,25 @@ import org.scalatest.junit.JUnitRunner
     assert(sum(List(1,2,0)) === 3)
   }
 
+  test("sum of a few neg and non-neg numbers") {
+    assert(sum(List(1,-2,0)) === -1)
+  }
+
+  test("sum of a repeated numbers") {
+    assert(sum(List(2,2,2)) === 6)
+  }
+
   test("max of a few numbers") {
     assert(max(List(3, 7, 2)) === 7)
+  }
+
+
+  test("max of a few neg and non-neg numbers") {
+    assert(max(List(1,-2,0)) === 1)
+  }
+
+  test("max of a repeated numbers") {
+    assert(max(List(2,2,2)) === 2)
   }
 
 
