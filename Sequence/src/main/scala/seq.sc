@@ -8,16 +8,18 @@ case class Series(ps: List[Pos]) {
 }
 case class Mat(m: Map[Pos, Int]) {
   def neighbors (p: Pos): List[Pos]  = {
-    val mRow = m.map(_._1.row).max
-    val mCol = m.map(_._1.col).max
+    val maxRow = m.map(_._1.row).max
+    val maxCol = m.map(_._1.col).max
+    val minRow = m.map(_._1.row).min
+    val minCol = m.map(_._1.col).min
     (for {
       r <- -1 to 1
       c <- -1 to 1
       if math.abs(r) != math.abs(c)
-      if r + p.row >= 0
-      if c + p.col >= 0
-      if (r + p.row) <= mRow
-      if (c + p.col) <= mCol
+      if r + p.row >= minRow
+      if c + p.col >= minCol
+      if r + p.row <= maxRow
+      if c + p.col <= maxCol
     } yield new Pos(p.row + r, p.col + c)).toList
   }
   def goodNeighbors(p: Pos, test: (Int, Int) => Boolean ) : List[Pos] =
