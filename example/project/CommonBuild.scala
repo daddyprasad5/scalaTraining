@@ -8,7 +8,6 @@ import sbt._
   * @param styleScoreRatio Defines the portion of the grade that is assigned to style.
   * @param dependencies    Library dependencies specific to this module.
   * @param styleSheet      Path to the scalastyle configuration for this assignment.
-  * @param gradeSystemProperties  Properties passed to the java process that executes grading.
   */
 case class Assignment(packageName: String,
                       key: String,
@@ -17,8 +16,7 @@ case class Assignment(packageName: String,
                       maxScore: Double,
                       styleScoreRatio: Double = 0.0d,
                       styleSheet: String = "",
-                      dependencies: Seq[ModuleID] = Seq(),
-                      gradeSystemProperties: Seq[(String, String)] = Seq()) {
+                      dependencies: Seq[ModuleID] = Seq()) {
   assert(!(styleScoreRatio == 0.0d ^ styleSheet == ""), "Style sheet and style ratio should be defined in pair.")
 }
 

@@ -1,5 +1,7 @@
 package example
 
+//import scala.tools.nsc.backend.icode.Opcodes.opcodes.CALL_METHOD
+
 
 object Lists {
 
@@ -23,13 +25,7 @@ object Lists {
    * @param xs A list of natural numbers
    * @return The sum of all elements in `xs`
    */
-    def sum(xs: List[Int]): Int = {
-      def iter(xs: List[Int], acc: Int): Int = {
-        if (xs.isEmpty) acc
-        else iter(xs.tail, acc + xs.head)
-      }
-      iter(xs, 0)
-    }
+    def sum(xs: List[Int]): Int = xs.fold(0)(_ + _)
   
   /**
    * This method returns the largest element in a list of integers. If the
@@ -45,10 +41,7 @@ object Lists {
    * @throws java.util.NoSuchElementException if `xs` is an empty list
    */
     def max(xs: List[Int]): Int = {
-      def iter(xs: List[Int], acc: Int): Int = {
-        if (xs.isEmpty) acc
-        else iter(xs.tail, if(xs.head > acc) xs.head else acc)
-      }
-      iter(xs, 0)
-    }
+    if (xs.isEmpty) throw new java.util.NoSuchElementException
+    else xs.fold(0)(math.max(_,_))
+  }
   }

@@ -1,2 +1,2 @@
-course := "progfun2"
+course := "parprog1"
 assignment := "example"
