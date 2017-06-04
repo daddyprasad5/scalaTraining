@@ -12,7 +12,7 @@ class Pile(cards: Seq[Card] = Seq()) {
     * Defines a pile of cards. e.g. the pegging pile in cribbage.
     *
     * @param c Card to add to the pile.
-    * @return Pile with the new Card added to the "top" (last in the sequence)
+    * @return Pile with the new Card added to the "top" (first in the sequence)
     */
   def add(c: Card) = new Pile(c +: cards)
   def empty = new Pile()

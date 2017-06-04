@@ -58,6 +58,8 @@ import scala.util.Random
 
     private def isValidDeck(cards: List[Card]) = cards.size <= 52 && cards.distinct.size == cards.size
 
+    def getCards = pCards
+
     def getCribbageValues(game: String, rank: Rank): Int = {
       if (game == "cribbage") rank match {
         case Two => 2
@@ -81,34 +83,7 @@ import scala.util.Random
 
   object Deck{
     def apply(inCards: List[Card] = List()): Deck = {
-      var d = new Deck(inCards)
-      d
-    }
-  }
-
-
-
-  object PegScorer {
-
-    /*def scoreBooks(p: Pile, score: Int): Int = {
-      val last4 = p.getLast(4).toArray
-      if (last2.head.rank == last2.last.rank) //found a pair
-
-      else
-    }*/
-
-    def getPoints(p: Pile): Int = {
-      ???
-      /*
-        if so, also three of a kind? if not 2
-          if so, also four of a kind? if not 6
-            if so, 12
-      run of 2
-        if so, also run of 3? if not, 2
-          if so, also run of 4?
-            etc.
-      if 15, 2
-       */
+      new Deck(inCards)
     }
   }
 
