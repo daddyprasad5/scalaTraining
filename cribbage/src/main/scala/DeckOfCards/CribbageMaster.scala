@@ -29,22 +29,20 @@ object Score {
   *  @param dealer: the player who is the dealer in the next hand
   */
 case class CribbageContext(
-                            //cribbageMaster: CribbageMaster = CribbageMaster(),
                             player1: CribbagePlayer = AutoPlayer1("player1"),
                             player2: CribbagePlayer = AutoPlayer1("player2"),
                             dealer: Int = 1,
                             hand1: CribbageHand = CribbageHand(),
                             hand2: CribbageHand = CribbageHand(),
-                            crib: CribbageHand = CribbageHand(),
+                            crib: Crib = Crib(),
                             deck: Deck = Deck(),
                             pile: Pile = Pile(),
-                            score: Score = Score()
-                          )
+                            score: Score = Score())
 
 case class PlayerCribbageContext (
                                    dealer: Boolean,
                                    hand: CribbageHand,
-                                   crib: CribbageHand,
+                                   crib: Crib,
                                    pile: Pile,
                                    score: Score
                                  )
@@ -73,7 +71,7 @@ object CribbageMaster{
       else (true, "")
     }
 
-    return numCardsTest
+    numCardsTest
   }
 
   def playerCribbageContext(playerNum: Int, c: CribbageContext): PlayerCribbageContext = {
@@ -89,7 +87,7 @@ object CribbageMaster{
     PlayerCribbageContext(dealer, hand, c.crib, c.pile, c.score)
   }
 
-  private def dealHand(numCards: Int = 6, deck: Deck = new Deck()): (CribbageHand, Deck) = {
+  private def dealHand(numCards: Int = 6, deck: Deck = new Deck().shuffle()): (CribbageHand, Deck) = {
 
     def dealHand(hand: CribbageHand, deck: Deck, count: Int): (CribbageHand, Deck) = {
       if (count == 0) (hand, deck)
@@ -106,7 +104,7 @@ object CribbageMaster{
     val c = CribbageContext()
     val (dealerHand, nextDeck1) = dealHand()
     val (poneHand, nextDeck2) = dealHand(deck = nextDeck1)
-    val newContext = c.copy(hand1 = dealerHand,hand2 = poneHand,deck = nextDeck2)
+    val newContext = c.copy(hand1 = dealerHand, hand2 = poneHand, deck = nextDeck2)
     val testContext = validateCribbageContext(newContext)
     if (!testContext._1) throw new RuntimeException(testContext._2)
     else newContext
@@ -139,7 +137,7 @@ object CribbageMaster{
       val p2Cards: Seq[Card] = c.player2.playToCrib(playerCribbageContext(2, c))
       val p1Hand = takeCardsFromHand(c.hand1, p1Cards)
       val p2Hand = takeCardsFromHand(c.hand2, p2Cards)
-      c.copy(crib = CribbageHand((p1Cards ++ p2Cards).toSet), hand1 = p1Hand, hand2 = p2Hand)
+      c.copy(hand1 = p1Hand, hand2 = p2Hand, crib = Crib(p1Cards, p2Cards))
     }
   }
 
@@ -155,17 +153,23 @@ object CribbageMaster{
     val scoreAdd = scorePegging(pile)
     val score = {
       if (player1Turn) c.score.add((scoreAdd,0))
-      else c.score.add((scoreAdd,0))
+      else c.score.add((0,scoreAdd))
     }
     val newContext = c.copy(hand1 = hand1, hand2 = hand2, pile = pile, score = score)
     newContext
   }
 
-  def playPegging(c: CribbageContext): CribbageContext = {
+  def playPegging(c: CribbageContext): Seq[CribbageContext] = {
+    playPegging(Seq(c))
+  }
 
+  def playPegging(cs: Seq[CribbageContext]): Seq[CribbageContext] = {
+
+    val c = cs.head
     val pileSize = c.pile.getCards.size
     val hand1Size = c.hand1.getCards.size
     val hand2Size = c.hand2.getCards.size
+    val seqContext = Seq[CribbageContext]()
 
     def validContext(c: CribbageContext): Boolean = {
       if (
@@ -177,15 +181,15 @@ object CribbageMaster{
       else false
     }
 
-    if (pileSize == 8) c
+    if (pileSize == 8) cs
 
     else {
       if (!validContext(c)) throw new RuntimeException("Not a valid pegging context" + c.pile.getCards.toString)
-      val poneTurn: Boolean = ( (pileSize % 2) == 0)
+      val poneTurn: Boolean =  (pileSize % 2) == 0
       val player1Pone: Boolean = c.dealer != 1
       val player1Turn: Boolean = (poneTurn & player1Pone) || (!poneTurn & !player1Pone)
       val newContext = playPegging(c, player1Turn)
-      playPegging(newContext)
+      playPegging(newContext +: cs)
     }
 
 
@@ -211,7 +215,6 @@ object CribbageMaster{
   }
 
   private def getNextRank(rank: Rank, direction:Int):  Option[Rank] = {
-    println("in getNextRank")
     val ranks = Array[Rank](Ace, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King)
     val nextRank =
       if (direction > 0) {
@@ -223,41 +226,64 @@ object CribbageMaster{
         if (rank == Ace) None
         else Some(ranks(ranks.indexOf(rank) - 1))
       }
-    println("rank = " + println(rank) + " next Rank = " + nextRank)
     nextRank
   }
 
+  private def getSubPile(left: Pile, right: Pile = Pile(), cnt: Int = 0): Pile = {
+    if (left.getCards.isEmpty) right
+    else {
+      val nextCard = left.last()
+      val nextCardValue = getRankValue(nextCard.rank)
+      val nextLeft = left.init()
+      val PossibleNextCnt = cnt + nextCardValue
+      val (nextCnt, nextRight) =
+        if (PossibleNextCnt > 31) (getRankValue(nextCard.rank), Pile(Seq(nextCard)))
+        else (PossibleNextCnt, right.add(nextCard))
+      getSubPile(nextLeft, nextRight, nextCnt)
+    }
+
+  }
+
+  private def validSubPile(p: Seq[Card]): Boolean = {
+    val sumRanks = (for (c <- p) yield getRankValue(c.rank)).sum
+    if (sumRanks > 31) {
+      false
+    }
+    else {
+      true
+    }
+  }
+
   def scorePegging(pile: Pile): Int = {
+
     def scoreBooks(cards: Seq[Card]): Int = {
+      assert(validSubPile(cards), "subpile contains more than 31 points")
       def bookDepth(cards: Seq[Card], topCardRank: Rank, acc: Int): Int =  {
        if (cards.isEmpty) acc
        else {
          val (accNew, nextCards) = cards.head.rank match {
-           case `topCardRank` => println("matched"); (acc + 1, cards.tail)
-           case _ => println("no match");(acc, Seq())
+           case `topCardRank` =>(acc + 1, cards.tail)
+           case _ => ;(acc, Seq())
          }
-         println(cards.head.rank + " " + topCardRank + " " + accNew )
          bookDepth(nextCards, topCardRank, accNew)
        }
       }
       val depth = bookDepth(cards.tail,cards.head.rank,1)
-      println(depth)
       val score = depth match {
         case 2 => 2
         case 3 => 6
         case 4 => 12
         case _ => 0
       }
-      println("score from book: " + score)
       score
     }
 
     def scoreRuns(cards: Seq[Card]): Int = {
+      assert(validSubPile(cards), "subpile contains more than 31 points")
       def runDepth(cards: Seq[Card], lastRank: Rank, suite: Suite, direction: Int,  acc: Int): Int = {
         val nextRankOpt = getNextRank(lastRank, direction)
-        if (cards.isEmpty || nextRankOpt.isEmpty) {println("exiting..."); acc;}
+        if (cards.isEmpty || nextRankOpt.isEmpty) acc
         else {
-           println("moving on...")
           val nextRank = nextRankOpt.get
           val (accNew, nextCardRank, nextCards) = (cards.head.rank, cards.head.suite) match {
             case (`nextRank`, `suite`) => (acc + 1, nextRank, cards.tail)
@@ -268,26 +294,30 @@ object CribbageMaster{
       }
       val depthUp = runDepth(cards.tail, cards.head.rank,cards.head.suite, 1, 1)
       val depth = if (depthUp < 2) runDepth(cards.tail,cards.head.rank,cards.head.suite, -1, 1) else depthUp
-      println("depthUp: " + depthUp + " depth: " + depth)
       val score = if (depth > 2) depth else 0
-      println("score from runs: " + score)
       score
     }
     def score15s(cards: Seq[Card]): Int = {
+      assert(validSubPile(cards), "subpile contains more than 31 points")
       def is15(cards: Seq[Card], acc: Int): Boolean = {
         if (acc == 15) true
         else if (acc > 15) false
         else if (cards.isEmpty) false
         else {
-          is15(cards.tail, acc + getRankValue(cards.head.rank))
+          is15(cards.init, acc + getRankValue(cards.last.rank))
         }
       }
       if (is15(cards, 0)) 2 else 0
     }
 
-    val cards = pile.getCards
+    def score31s(cards: Seq[Card]): Int = {
+      val sumRanks = (for (c <- cards) yield getRankValue(c.rank)).sum
+      if (sumRanks == 31) 2 else 0
+    }
 
-    scoreBooks(cards) + scoreRuns(cards) + score15s(cards)
+    val cards = getSubPile(pile).getCards
+
+    scoreBooks(cards) + scoreRuns(cards) + score15s(cards) + score31s(cards)
 
   }
 }

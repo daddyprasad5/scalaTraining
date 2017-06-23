@@ -46,7 +46,7 @@ class deckTest extends FunSuite {
     assert(cc.pile.getCards.size == 0)
     val p1StartingCards = cc.hand1.getCards
     val p2StartingCards = cc.hand2.getCards
-    val cc2 = CribbageMaster.playPegging(cc)
+    val cc2 = CribbageMaster.playPegging(cc).head
     assert(cc2.pile.getCards.size == 8, "pile didn't have 4 cards")
     assert(cc2.hand1.getCards.isEmpty, "hand1 didn't have 0 cards")
     assert(cc2.hand2.getCards.isEmpty, "hand2 didn't have 0 cards")
@@ -57,8 +57,8 @@ class deckTest extends FunSuite {
     val p1FromPile =Set(pileCards(0), pileCards(2), pileCards(4), pileCards(6))
     val p2FromPile =Set(pileCards(1), pileCards(3), pileCards(5), pileCards(7))
 
-    assert(p1FromPile == p1StartingCards, "player 1 cards aren't showing up in the right places in the pile")
-    assert(p2FromPile == p2StartingCards, "player 2 cards aren't showing up in the right places in the pile")
+    assert(p1FromPile == p1StartingCards.toSet, "player 1 cards aren't showing up in the right places in the pile")
+    assert(p2FromPile == p2StartingCards.toSet, "player 2 cards aren't showing up in the right places in the pile")
 
   }
 
@@ -82,8 +82,7 @@ class deckTest extends FunSuite {
     val fifteenPile2 = Pile(
       Seq(
         Card(Jack, Heart),
-        Card(Five, Diamond),
-        Card(Two, Spade)
+        Card(Five, Diamond)
       )
     )
 
@@ -101,7 +100,10 @@ class deckTest extends FunSuite {
         Card(Five, Diamond),
         Card(Three, Heart),
         Card(Two, Club),
-        Card(Four, Heart)
+        Card(Four, Heart),
+        Card(King, Spade),
+        Card(Queen, Spade),
+        Card(Ten,Spade)
       )
     )
 
@@ -195,9 +197,7 @@ class deckTest extends FunSuite {
       Seq(
         Card(Jack, Spade),
         Card(Queen, Spade),
-        Card(King, Spade),
-        Card(Ace, Spade),
-        Card(Two, Spade)
+        Card(King, Spade)
       )
     )
 
@@ -223,16 +223,101 @@ class deckTest extends FunSuite {
     //test that runs of four are scored, and don't include wrong suit
     val fiveRunPile = Pile(
       Seq(
-        Card(Eight, Spade),
-        Card(Nine, Spade),
-        Card(Ten, Spade),
-        Card(Jack, Spade),
-        Card(Queen, Heart)
+        Card(Ace, Spade),
+        Card(Two, Spade),
+        Card(Three, Spade),
+        Card(Four, Spade),
+        Card(Five, Heart)
       )
     )
 
     val fiveRunScore = CribbageMaster.scorePegging(fiveRunPile)
-    assert(fiveRunScore == 4)
+    assert(fiveRunScore == 6) //includes 2 extra for a fifteen
+
+    val runAfter31 = Pile(
+      Seq(
+        Card(Two, Spade),
+        Card(Three, Spade),
+        Card(Four, Spade),
+        Card(Ace, Heart),
+        Card(King, Spade),
+        Card(Queen, Spade),
+        Card(Ten, Heart)
+      )
+    )
+
+    val runAfter31Score = CribbageMaster.scorePegging(runAfter31)
+    assert(runAfter31Score == 3)
+
+    val sc31 = Pile(
+      Seq(
+        Card(Ace, Spade),
+        Card(King, Spade),
+        Card(Queen, Spade),
+        Card(Ten, Spade)
+      )
+    )
+
+    val sc31Score = CribbageMaster.scorePegging(sc31)
+    assert(sc31Score == 2)
 
   }
+
+  test("encoding a full hand work"){
+
+    val h = CribbageHand(Seq(Card(Ace,Heart), Card(Ace, Spade), Card(Ace, Club), Card(Ace, Diamond)))
+    val actual = CardEncoder.encodeHand(h)
+    val expected = Seq(101, 201, 301, 1).sorted
+    assert(actual===expected)
+
+  }
+
+  test("encoding a partial hand work"){
+
+    val h = CribbageHand(Seq(Card(Ace,Heart), Card(Ace, Spade), Card(Ace, Club) ))
+    val actual = CardEncoder.encodeHand(h)
+    val expected = Seq(101, 201,301, 0)
+    assert(actual===expected)
+
+  }
+
+  test("encoding an empty hand work"){
+
+    val h = CribbageHand(Seq())
+    val actual = CardEncoder.encodeHand(h)
+    val expected = Seq(0, 0, 0, 0)
+    assert(actual===expected)
+
+  }
+
+
+  test("encoding a full pile work"){
+
+    val h = Pile(List(Card(Two,Heart), Card(Two, Spade), Card(Two, Club), Card(Two, Diamond), Card(Ace,Heart), Card(Ace, Spade), Card(Ace, Club), Card(Ace, Diamond)))
+    val actual = CardEncoder.encodePile(h)
+    val expected = Seq(102, 302, 202, 2, 101, 301, 201, 1)
+    assert(actual===expected)
+
+  }
+
+  test("encoding a partial pile work"){
+
+    val h = Pile(List(Card(Two,Heart), Card(Two, Spade), Card(Two, Club), Card(Two, Diamond),Card(Ace,Heart), Card(Ace, Spade), Card(Ace, Club) ))
+    val actual = CardEncoder.encodePile(h)
+    val expected = Seq(102, 302, 202, 2, 101, 301, 201, 0)
+    assert(actual===expected)
+
+  }
+
+  test("encoding an empty pile work"){
+
+    val h = Pile(List())
+    val actual = CardEncoder.encodePile(h)
+    val expected = Seq(0, 0, 0, 0, 0, 0, 0, 0)
+    assert(actual===expected)
+
+  }
+
+
+
 }

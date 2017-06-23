@@ -34,6 +34,8 @@ import scala.util.Random
   //the interesting part
   case class Card(rank: Rank, suite: Suite)
 
+
+
   class Deck(inCards: List[Card] = List()) {
 
     val suites = Set(Spade, Heart, Club, Diamond)
@@ -86,6 +88,104 @@ import scala.util.Random
       new Deck(inCards)
     }
   }
+
+object CardEncoder {
+  private val cCode = Map(
+    Card(Ace, Diamond) -> 1,
+    Card(Two, Diamond) -> 2,
+    Card(Three, Diamond) -> 3,
+    Card(Four, Diamond) -> 4,
+    Card(Five, Diamond) -> 5,
+    Card(Six, Diamond) -> 6,
+    Card(Seven, Diamond) -> 7,
+    Card(Eight, Diamond) -> 8,
+    Card(Nine, Diamond) -> 9,
+    Card(Ten, Diamond) -> 10,
+    Card(Jack, Diamond) -> 11,
+    Card(Queen, Diamond) -> 12,
+    Card(King, Diamond) -> 13,
+    Card(Ace, Heart) -> 101,
+    Card(Two, Heart) -> 102,
+    Card(Three, Heart) -> 103,
+    Card(Four, Heart) -> 104,
+    Card(Five, Heart) -> 105,
+    Card(Six, Heart) -> 106,
+    Card(Seven, Heart) -> 107,
+    Card(Eight, Heart) -> 108,
+    Card(Nine, Heart) -> 109,
+    Card(Ten, Heart) -> 110,
+    Card(Jack, Heart) -> 111,
+    Card(Queen, Heart) -> 112,
+    Card(King, Heart) -> 113,
+    Card(Ace, Club) -> 201,
+    Card(Two, Club) -> 202,
+    Card(Three, Club) -> 203,
+    Card(Four, Club) -> 204,
+    Card(Five, Club) -> 205,
+    Card(Six, Club) -> 206,
+    Card(Seven, Club) -> 207,
+    Card(Eight, Club) -> 208,
+    Card(Nine, Club) -> 209,
+    Card(Ten, Club) -> 210,
+    Card(Jack, Club) -> 211,
+    Card(Queen, Club) -> 212,
+    Card(King, Club) -> 213,
+    Card(Ace, Spade) -> 301,
+    Card(Two, Spade) -> 302,
+    Card(Three, Spade) -> 303,
+    Card(Four, Spade) -> 304,
+    Card(Five, Spade) -> 305,
+    Card(Six, Spade) -> 306,
+    Card(Seven, Spade) -> 307,
+    Card(Eight, Spade) -> 308,
+    Card(Nine, Spade) -> 309,
+    Card(Ten, Spade) -> 310,
+    Card(Jack, Spade) -> 311,
+    Card(Queen, Spade) -> 312,
+    Card(King, Spade) -> 313
+  )
+
+
+  private val reverseCardCode = {
+    for ((k,v) <- cCode) yield (v, k)
+  }
+
+
+  def cardsEncode (c: Card): Int = {
+    cCode(c)
+  }
+
+  def cardsDecode (i: Int): Card = {
+    reverseCardCode(i)
+  }
+
+  def cardsEncode (cs: Seq[Card]): Seq[Int] = {
+    val a = for (c <- cs) yield this.cCode(c)
+    a
+  }
+
+  def cardsDecode (is: Seq[Int]): Seq[Card] = {
+    for (i <- is) yield reverseCardCode(i)
+  }
+
+  def pad(s: Seq[Int], d: Int): Seq[Int] = {
+    val cnt = d - s.size
+    val nulls: Seq[Int] = for (i <- 1 to cnt) yield 0
+    s ++ nulls
+  }
+
+  def encodeHand(h: CribbageHand): Seq[Int] = {
+    pad(cardsEncode(h.getCards.toSeq).sorted,4)
+  }
+
+  def encodePile(p: Pile): Seq[Int] = {
+    pad(cardsEncode(p.getCards),8)
+  }
+
+  def encodeCrib(c: Crib, player: Int): Seq[Int] = {
+    pad(cardsEncode(c.getCards(player)), 2)
+  }
+}
 
 
 

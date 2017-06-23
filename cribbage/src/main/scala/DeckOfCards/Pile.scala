@@ -16,6 +16,10 @@ class Pile(cards: Seq[Card] = Seq()) {
     */
   def add(c: Card) = new Pile(c +: cards)
   def empty = new Pile()
+  def init() = Pile(getCards.init)
+  def tail() = Pile(getCards.tail)
+  def last() = getCards.last
+  def head() = getCards.head
   def getLast(numCards: Int): Seq[Card] = {
     def getLastIter(num: Int, pile: Seq[Card], cardsOut: Seq[Card]): Seq[Card] = {
       if (num == 0) cardsOut
